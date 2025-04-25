@@ -1,0 +1,64 @@
+@import url(../common/common.css);
+
+
+.box {
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+body {
+  width: max-content;
+  max-width: 800px;
+}
+
+code:not([data-highlighted=yes]) {
+  background: #282C34;
+  color: #F8F8E5;
+  font-size: 85%;
+  border-radius: 6px;
+  padding: .1em .4em;
+  margin: 0;
+  font-family: inherit;
+}
+
+table:not(code table) {
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+table:not(code table) th,
+table:not(code table) td {
+  border: 1px solid #dfe2e5;
+  padding: 6px 13px;
+  background-color: #fff;
+}
+
+table:not(code table) tr:nth-child(even) td {
+  background-color: #F6F8FA;
+}
+
+h1,
+h2 {
+  border-bottom: 0.5px solid #9099a3;
+}
+
+ul {
+  padding-left: 30px;
+}
+
+blockquote {
+  padding-left: 15px;
+  color: #636c76;
+  border-left: 5px solid #D0D7DE;
+  margin: 0;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
