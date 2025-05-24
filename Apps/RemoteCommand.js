@@ -61,7 +61,7 @@ export class RemoteCommand extends plugin {
         }
       ]
     })
-        this.startDailyTask();
+        // this.startDailyTask();
   }
 
   async evalSync(cmd, func, isValue, isAsync) {
