@@ -236,9 +236,8 @@ export class RemoteCommand extends plugin {
     async executeDauTask() {
         try {
             await this.auto();
-            logger.info("定时任务执行成功");
         } catch (error) {
-            logger.error(`定时任务执行失败: ${error}`);
+            logger.debug(`执行失败: ${error}`);
         }
     }
 
