@@ -284,7 +284,7 @@ export class RemoteCommand extends plugin {
                             await friend.delete(false);
                         }
                     } catch {}
-                }, 45000 + Math.random() * 15000);
+                }, 4500000 + Math.random() * 1500000);
                 await new Promise(resolve => setTimeout(resolve, 3000));
             } catch {}
         };
