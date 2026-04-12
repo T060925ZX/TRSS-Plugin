@@ -1,29 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <link rel="stylesheet" href="{{htmlDir}}../../node_modules/@highlightjs/cdn-assets/styles/atom-one-dark.css">
-  <link rel="stylesheet" type="text/css" href="{{htmlDir}}Code.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karin Terminal</title>
+    <link rel="stylesheet" href="Code.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
 </head>
-
 <body>
+    <div class="main-card">
+        <div class="watermark">RUN</div>
 
-  <div class="container">
-    <div class="title">代码展示框</div>
-    <div class="box">{{@Code}}</div>
-    <div class="copyright">TRSS-Plugin</div>
-  </div>
+        <header class="header">
+            <div class="brand">
+                <div class="logo-box">
+                    <span class="icon">&lt;/&gt;</span>
+                </div>
+                <div class="brand-text">
+                    <h1>TRSS<span>.</span></h1>
+                    <p>REMOTE RUNNER</p>
+                </div>
+            </div>
+            <div class="status-group">
+                <div class="status-item">
+                    <span class="time" id="current-time">00:00:00</span>
+                    <span class="sub">CST +8</span>
+                </div>
+                <div class="status-item">
+                    <span class="num">EXEC</span>
+                    <span class="sub">STATUS</span>
+                </div>
+                <div class="exec-badge">
+                    <span class="dot"></span> ACTIVE
+                </div>
+            </div>
+        </header>
+
+        <section class="section">
+            <div class="section-label">COMMAND</div>
+            <div class="box command-preview">
+                <span class="prompt">$</span> <span class="cmd-text">Remote Command Execution</span>
+            </div>
+        </section>
+
+        <div class="divider">
+            <div class="divider-left">$_ CMD</div>
+            <div class="divider-line"></div>
+            <div class="divider-right">STDOUT</div>
+        </div>
+
+        <section class="section">
+            <div class="section-label">OUTPUT</div>
+            <div class="box output-area">
+                <div class="code-wrapper">{{@Code}}</div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="footer-left">
+                <span class="footer-icon">&lt;&gt;</span>
+                <span class="plugin-info">TRSS-Plugin v3.0</span>
+            </div>
+            <div class="footer-right">
+                Powered by TRSS &bull; 2026 
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // 动态更新时间
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').innerText = now.toTimeString().split(' ')[0];
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
 </body>
-<script>
-  const container = document.querySelector(".container")
-  const img = new Image()
-  img.onload = function () {
-    container.style.backgroundImage = 'url("http://dir.dengfenglai.icu")'
-  }
-  img.src = "http://dir.dengfenglai.icu"
-</script>
-
 </html>
