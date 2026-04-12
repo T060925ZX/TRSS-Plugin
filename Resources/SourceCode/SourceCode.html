@@ -1,41 +1,161 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <link rel="stylesheet" href="{{htmlDir}}../../node_modules/@highlightjs/cdn-assets/styles/night-owl.css">
-  <script src="{{htmlDir}}../../node_modules/@highlightjs/cdn-assets/highlight.min.js"></script>
-  <script src="{{htmlDir}}../../node_modules/highlightjs-line-numbers.js/dist/highlightjs-line-numbers.min.js"></script>
-  <script>
-    hljs.highlightAll()
-    hljs.initLineNumbersOnLoad()
-    if (hljs.getLanguage('{{fileSuffix}}')) {
-      hljs.configure({
-        languages: ['{{fileSuffix}}']
-      })
-    }
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Source Viewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+    <style>
+        :root {
+            --bg-main: #0d1117;
+            --card-bg: #11141a;
+            --box-bg: rgba(18, 22, 28, 0.8);
+            --border-dim: #262c36;
+            --text-dim: #6e7681;
+            --text-bright: #e6edf3;
+            --accent-purple: #9f7aea;
+            --accent-cyan: #79c0ff;
+            --accent-green: #48bb78;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            width: fit-content;
+            min-width: 800px;
+            max-width: 1200px;
+            background-color: var(--bg-main);
+            font-family: 'Fira Code', 'Consolas', monospace;
+            padding: 30px;
+        }
+
+        .main-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-dim);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        /* 顶部装饰条（模拟IDE） */
+        .window-header {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        .window-controls { display: flex; gap: 8px; }
+        .control { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+
+        .file-info {
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .file-suffix-badge {
+            background: rgba(121, 192, 255, 0.1);
+            color: var(--accent-cyan);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* 代码区域 */
+        .code-box {
+            padding: 20px 0;
+            background: var(--box-bg);
+        }
+
+        pre { margin: 0; }
+        code {
+            font-family: 'Fira Code', 'Consolas', monospace !important;
+            font-size: 14px !important;
+            line-height: 1.6 !important;
+            background: transparent !important;
+        }
+
+        /* 行号插件样式自定义 */
+        .hljs-ln-numbers {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            text-align: right;
+            color: #4b5263; /* 调暗行号 */
+            vertical-align: top;
+            padding-right: 20px !important;
+            padding-left: 20px !important;
+            border-right: 1px solid var(--border-dim);
+        }
+        .hljs-ln-code {
+            padding-left: 20px !important;
+        }
+        .hljs-ln tr:hover {
+            background: rgba(255, 255, 255, 0.02); /* 悬停行高亮 */
+        }
+
+        /* 底部 */
+        .footer {
+            padding: 12px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid var(--border-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+        .footer-left span { color: var(--accent-purple); font-weight: bold; }
+    </style>
 </head>
-
 <body>
-  <div class="container">
-    <link rel="stylesheet" type="text/css" href="{{htmlDir}}SourceCode.css">
-    <div class="title">源码展示框</div>
-    <div class="box">
-      <pre><code data-ln-start-from="{{lnStart}}">{{@SourceCode}}</code></pre>
-    </div>
-    <div class="copyright">TRSS-Plugin</div>
-  </div>
-</body>
-<script>
-  const container = document.querySelector(".container")
-  const img = new Image()
-  img.onload = function () {
-    container.style.backgroundImage = 'url("http://dir.dengfenglai.icu")'
-  }
-  img.src = "http://dir.dengfenglai.icu"
-</script>
+    <div class="main-card">
+        <header class="window-header">
+            <div class="window-controls">
+                <div class="control red"></div>
+                <div class="control yellow"></div>
+                <div class="control green"></div>
+            </div>
+            <div class="file-info">
+                SOURCE CODE VIEWER <span class="file-suffix-badge">{{fileSuffix}}</span>
+            </div>
+            <div style="width: 50px"></div> </header>
 
+        <div class="code-box">
+            <pre><code class="hljs" data-ln-start-from="{{lnStart}}">{{@SourceCode}}</code></pre>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-left">
+                <span>&lt;/&gt;</span> TRSS-Plugin SOURCE
+            </div>
+            <div>
+                LINE START: {{lnStart}} &bull; 2026
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>
+    <script>
+        // 设置指定语言
+        const suffix = '{{fileSuffix}}';
+        if (hljs.getLanguage(suffix)) {
+            document.querySelector('code').classList.add('language-' + suffix);
+        }
+        
+        hljs.highlightAll();
+        hljs.initLineNumbersOnLoad();
+    </script>
+</body>
 </html>
