@@ -7,26 +7,39 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
     <style>
         :root {
+            /* 整体背景与卡片颜色 */
             --bg-main: #0d1117;
             --card-bg: #11141a;
+            
+            /* 基础文字与淡色 */
+            --text-main: #b1bac4; /* 普通段落文字 */
+            --text-dim: #6e7681;  /* 页脚文字 */
+            --text-bright: #e6edf3; /* 核心文字，代码块文字 */
+            
+            /* 【主要调整】标题与侧边条颜色 - 降低饱和度，更柔和 */
+            --accent-cyan: #79c0ff;   /* 用于 h1, h2, h3 - 柔和蓝色 */
+            --accent-purple: #9f7aea; /* 用于 h2 侧边条 - 沉稳紫色 */
+            
+            /* 【主要调整】引用与小组件颜色 - 降低刺眼感 */
+            --accent-pink: #f687b3; /* 用于代码行内和 blockquote 侧边 */
+            --quote-bg: rgba(246, 135, 179, 0.05); /* 引用背景 - 极淡粉 */
+            
+            /* 代码块与边框 */
             --box-bg: rgba(18, 22, 28, 0.7);
             --border-dim: #262c36;
-            --text-dim: #6e7681;
-            --text-bright: #e6edf3;
-            --accent-purple: #9f7aea;
-            --accent-cyan: #4fd1c5;
-            --accent-pink: #f687b3;
+            
+            /* 字体 */
             --font-mono: 'Fira Code', 'Consolas', monospace;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            width: 850px;
+            width: 850px; /* 适配截图宽度 */
             background-color: var(--bg-main);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
             padding: 30px;
-            color: var(--text-bright);
+            color: var(--text-main);
         }
 
         .main-card {
@@ -39,7 +52,7 @@
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
         }
 
-        /* 水印与头部 */
+        /* 装饰性水印与头部 */
         .watermark {
             position: absolute;
             top: -10px;
@@ -59,13 +72,15 @@
             margin-bottom: 30px;
             border-bottom: 1px solid var(--border-dim);
             padding-bottom: 20px;
+            position: relative;
+            z-index: 1;
         }
 
         .brand h1 { font-size: 22px; color: var(--text-bright); }
         .brand h1 span { color: var(--accent-purple); }
         .brand p { font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
 
-        /* Markdown 内容美化 */
+        /* Markdown 内容主区域 */
         .markdown-body {
             position: relative;
             z-index: 1;
@@ -73,34 +88,36 @@
             word-wrap: break-word;
         }
 
-        /* 标题样式 */
+        /* 【优化】标题层级与颜色 */
         .markdown-body h1, .markdown-body h2, .markdown-body h3 {
             margin-top: 24px;
             margin-bottom: 16px;
             font-weight: 600;
             line-height: 1.25;
-            color: var(--accent-cyan);
+            color: var(--accent-cyan); /* 使用柔和蓝色 */
         }
 
         .markdown-body h1 { font-size: 2em; border-bottom: 1px solid var(--border-dim); padding-bottom: 0.3em; }
+        
+        /* h2 侧边条 - 调深 */
         .markdown-body h2 { font-size: 1.5em; border-left: 4px solid var(--accent-purple); padding-left: 12px; }
 
-        /* 段落与列表 */
+        /* 段落与列表 - 提升可读性 */
         .markdown-body p { margin-bottom: 16px; color: #b1bac4; }
         .markdown-body ul, .markdown-body ol { padding-left: 2em; margin-bottom: 16px; color: #b1bac4; }
         .markdown-body li { margin: 4px 0; }
 
-        /* 引用样式 */
+        /* 【优化】引用区块 - 调柔和 */
         .markdown-body blockquote {
             padding: 10px 20px;
-            color: var(--text-dim);
-            border-left: 0.25em solid var(--accent-pink);
-            background: rgba(246, 135, 179, 0.05);
+            color: #8b949e; /* 调深文字颜色 */
+            border-left: 0.25em solid rgba(246, 135, 179, 0.2); /* 调深边框 */
+            background: var(--quote-bg); /* 柔和背景 */
             border-radius: 4px;
             margin-bottom: 16px;
         }
 
-        /* 代码块样式 */
+        /* 代码块与行内代码 */
         .markdown-body pre {
             background: var(--box-bg) !important;
             border: 1px solid var(--border-dim);
@@ -110,19 +127,22 @@
             margin-bottom: 16px;
         }
 
+        /* 行内代码 - 调沉稳 */
         .markdown-body code {
             font-family: var(--font-mono);
             font-size: 85%;
-            background: rgba(110, 118, 129, 0.2);
+            background: rgba(110, 118, 129, 0.1);
             padding: 0.2em 0.4em;
             border-radius: 6px;
-            color: var(--accent-pink);
+            color: #ff7b72; /* 使用类似 Tokyo Night 的柔和橙红色 */
         }
 
+        /* pre 代码不使用背景 */
         .markdown-body pre code {
-            background: transparent;
+            background: transparent !important;
             color: inherit;
             padding: 0;
+            font-size: 100%;
         }
 
         /* 表格样式 */
@@ -135,11 +155,12 @@
         .markdown-body table th, .markdown-body table td {
             padding: 8px 13px;
             border: 1px solid var(--border-dim);
+            color: #b1bac4;
         }
         .markdown-body table tr { background-color: transparent; }
-        .markdown-body table tr:nth-child(2n) { background-color: rgba(255,255,255,0.02); }
+        .markdown-body table tr:nth-child(2n) { background-color: rgba(255,255,255,0.01); } /* 极淡隔行颜色 */
 
-        /* 底部 */
+        /* 页脚 */
         .footer {
             margin-top: 40px;
             padding-top: 20px;
@@ -148,6 +169,8 @@
             justify-content: space-between;
             font-size: 12px;
             color: var(--text-dim);
+            position: relative;
+            z-index: 1;
         }
         .footer-info { color: var(--accent-cyan); font-weight: bold; }
     </style>
@@ -162,7 +185,7 @@
                 <p>Markdown Renderer</p>
             </div>
             <div style="text-align: right">
-                <div id="date" style="font-size: 14px; font-weight: bold;">2026-04-12</div>
+                <div id="date" style="font-size: 14px; font-weight: bold; color: var(--text-bright);">2026-04-12</div>
                 <div style="font-size: 10px; color: var(--text-dim)">PREVIEW MODE</div>
             </div>
         </header>
