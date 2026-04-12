@@ -1,36 +1,190 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
-  <link rel="stylesheet" href="{{htmlDir}}../../node_modules/@highlightjs/cdn-assets/styles/night-owl.css">
-  <link rel="stylesheet" type="text/css" href="{{htmlDir}}Markdown.css">
-  <script src="{{htmlDir}}../../node_modules/@highlightjs/cdn-assets/highlight.min.js"></script>
-  <script src="{{htmlDir}}../../node_modules/highlightjs-line-numbers.js/dist/highlightjs-line-numbers.min.js"></script>
-  <script>
-    hljs.highlightAll()
-    hljs.initLineNumbersOnLoad()
-  </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Viewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+    <style>
+        :root {
+            --bg-main: #0d1117;
+            --card-bg: #11141a;
+            --box-bg: rgba(18, 22, 28, 0.7);
+            --border-dim: #262c36;
+            --text-dim: #6e7681;
+            --text-bright: #e6edf3;
+            --accent-purple: #9f7aea;
+            --accent-cyan: #4fd1c5;
+            --accent-pink: #f687b3;
+            --font-mono: 'Fira Code', 'Consolas', monospace;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            width: 850px;
+            background-color: var(--bg-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            padding: 30px;
+            color: var(--text-bright);
+        }
+
+        .main-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-dim);
+            border-radius: 20px;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 水印与头部 */
+        .watermark {
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            font-size: 100px;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.02);
+            font-style: italic;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-dim);
+            padding-bottom: 20px;
+        }
+
+        .brand h1 { font-size: 22px; color: var(--text-bright); }
+        .brand h1 span { color: var(--accent-purple); }
+        .brand p { font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+
+        /* Markdown 内容美化 */
+        .markdown-body {
+            position: relative;
+            z-index: 1;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        /* 标题样式 */
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+            color: var(--accent-cyan);
+        }
+
+        .markdown-body h1 { font-size: 2em; border-bottom: 1px solid var(--border-dim); padding-bottom: 0.3em; }
+        .markdown-body h2 { font-size: 1.5em; border-left: 4px solid var(--accent-purple); padding-left: 12px; }
+
+        /* 段落与列表 */
+        .markdown-body p { margin-bottom: 16px; color: #b1bac4; }
+        .markdown-body ul, .markdown-body ol { padding-left: 2em; margin-bottom: 16px; color: #b1bac4; }
+        .markdown-body li { margin: 4px 0; }
+
+        /* 引用样式 */
+        .markdown-body blockquote {
+            padding: 10px 20px;
+            color: var(--text-dim);
+            border-left: 0.25em solid var(--accent-pink);
+            background: rgba(246, 135, 179, 0.05);
+            border-radius: 4px;
+            margin-bottom: 16px;
+        }
+
+        /* 代码块样式 */
+        .markdown-body pre {
+            background: var(--box-bg) !important;
+            border: 1px solid var(--border-dim);
+            border-radius: 12px;
+            padding: 16px;
+            overflow: auto;
+            margin-bottom: 16px;
+        }
+
+        .markdown-body code {
+            font-family: var(--font-mono);
+            font-size: 85%;
+            background: rgba(110, 118, 129, 0.2);
+            padding: 0.2em 0.4em;
+            border-radius: 6px;
+            color: var(--accent-pink);
+        }
+
+        .markdown-body pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        /* 表格样式 */
+        .markdown-body table {
+            border-spacing: 0;
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        .markdown-body table th, .markdown-body table td {
+            padding: 8px 13px;
+            border: 1px solid var(--border-dim);
+        }
+        .markdown-body table tr { background-color: transparent; }
+        .markdown-body table tr:nth-child(2n) { background-color: rgba(255,255,255,0.02); }
+
+        /* 底部 */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-dim);
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        .footer-info { color: var(--accent-cyan); font-weight: bold; }
+    </style>
 </head>
-
 <body>
-  <div class="container">
-    <div class="title">源码展示框</div>
-    <div class="box">
-      {{@Markdown}}
-    </div>
-    <div class="copyright">TRSS-Plugin</div>
-  </div>
-</body>
-<script>
-  const container = document.querySelector(".container")
-  const img = new Image()
-  img.onload = function () {
-    container.style.backgroundImage = 'url("http://dir.dengfenglai.icu")'
-  }
-  img.src = "http://dir.dengfenglai.icu"
-</script>
+    <div class="main-card">
+        <div class="watermark">DOCS</div>
 
+        <header class="header">
+            <div class="brand">
+                <h1>TRSS<span>.</span>DOCS</h1>
+                <p>Markdown Renderer</p>
+            </div>
+            <div style="text-align: right">
+                <div id="date" style="font-size: 14px; font-weight: bold;">2026-04-12</div>
+                <div style="font-size: 10px; color: var(--text-dim)">PREVIEW MODE</div>
+            </div>
+        </header>
+
+        <article class="markdown-body">
+            {{@Markdown}}
+        </article>
+
+        <footer class="footer">
+            <div>&lt;/&gt; <span class="footer-info">TRSS-Plugin</span></div>
+            <div>Powered by Markdown-It &bull; 2026</div>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script>
+        // 初始化高亮
+        document.querySelectorAll('pre code').forEach((el) => {
+            hljs.highlightElement(el);
+        });
+        // 自动日期
+        document.getElementById('date').innerText = new Date().toISOString().split('T')[0];
+    </script>
+</body>
 </html>
