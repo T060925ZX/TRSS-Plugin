@@ -66,7 +66,7 @@ export class SystemInfo extends plugin {
     }
 
     const Code = await ansi_up.ansi_to_html(ret.stdout.trim())
-    const img = await puppeteer.screenshot("Code", { tplFile, htmlDir, Code })
+    const img = await puppeteer.screenshot("Code", { tplFile, htmlDir, Code, cmd })
     await this.reply(img, true)
   }
 
@@ -87,7 +87,7 @@ export class SystemInfo extends plugin {
     }
 
     const Code = await ansi_up.ansi_to_html(ret.stdout.trim())
-    const img = await puppeteer.screenshot("Code", { tplFile, htmlDir, Code })
+    const img = await puppeteer.screenshot("Code", { tplFile, htmlDir, Code, cmd: benchcmd })
     await this.reply(img, true)
     Running = false
   }
