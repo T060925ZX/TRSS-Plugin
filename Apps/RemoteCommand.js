@@ -148,7 +148,7 @@ export class RemoteCommand extends plugin {
 
     Code = await ansi_up.ansi_to_html(Code.join("\n\n"))
     Code = inspectCmd(hljs.highlight(cmd, { language: langCmd }).value, Code)
-    const img = await puppeteer.screenshot("Code", { tplFile, htmlDir, Code })
+    const img = await puppeteer.screenshot("Code", { tplFile, htmlDir, Code, cmd: cmd })
     return this.reply(img, true)
   }
 
