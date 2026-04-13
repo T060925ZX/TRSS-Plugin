@@ -7,22 +7,7 @@ class BApi {
 
     async getloginqrcode(url, e) {
         try {
-            const avatarUrl = await e.bot.pickFriend(e.user_id).getAvatarUrl()
-            
-            // 更丰富的颜色方案
-            function getRandomColor(baseColor = [255, 145, 164], variation = 8) {
-                const [baseR, baseG, baseB] = baseColor;
-                const r = Math.max(0, Math.min(baseR + Math.floor(Math.random() * (variation * 2 + 1)) - variation, 255))
-                    .toString(16)
-                    .padStart(2, '0')
-                const g = Math.max(0, Math.min(baseG + Math.floor(Math.random() * (variation * 2 + 1)) - variation, 255))
-                    .toString(16)
-                    .padStart(2, '0')
-                const b = Math.max(0, Math.min(baseB + Math.floor(Math.random() * (variation * 2 + 1)) - variation, 255))
-                    .toString(16)
-                    .padStart(2, '0')
-                return `#${r}${g}${b}`
-            }
+            logger.mark('[二维码美化] 开始生成美化二维码')
             
             // 生成渐变背景色
             function getGradientColors() {
@@ -37,6 +22,9 @@ class BApi {
             }
             
             const gradientColors = getGradientColors();
+            logger.mark(`[二维码美化] 使用配色方案: ${gradientColors[0]} -> ${gradientColors[1]}`)
+            
+            // 生成带颜色的二维码
             const qrBuffer = await QR.toBuffer(url, {
                 color: {
                     dark: '#2C3E50',  // 深蓝色代替纯黑，更柔和
@@ -48,22 +36,21 @@ class BApi {
                 height: 500,
                 errorCorrectionLevel: 'H'  // 高纠错级别，允许更大的中心logo
             })
-            let avatarImage
+            logger.mark('[二维码美化] 二维码生成成功')
+            
+            // 尝试获取并处理头像（可选步骤，失败不影响二维码生成）
+            let processedAvatar = null;
             try {
+                const avatarUrl = await e.bot.pickFriend(e.user_id).getAvatarUrl()
+                logger.mark('[二维码美化] 正在获取用户头像')
+                
                 const response = await fetch(avatarUrl);
                 if (!response.ok) throw new Error('Failed to fetch avatar')
                 const arrayBuffer = await response.arrayBuffer()
-                avatarImage = Buffer.from(arrayBuffer)
-            } catch (error) {
-                logger.error('无法获取用户头像', error)
-                avatarImage = null;
-            }
-            
-            // 创建带圆角和边框的头像
-            let processedAvatar = null;
-            if (avatarImage) {
+                const avatarImage = Buffer.from(arrayBuffer)
+                
                 // 调整头像大小并添加圆形裁剪
-                processedAvatar = await sharp(avatarImage)
+                let avatarBuf = await sharp(avatarImage)
                     .resize(100, 100)
                     .toFormat('png')
                     .toBuffer();
@@ -86,7 +73,7 @@ class BApi {
                 .toBuffer();
                 
                 // 应用圆形遮罩
-                processedAvatar = await sharp(processedAvatar)
+                avatarBuf = await sharp(avatarBuf)
                     .composite([{ input: circleMask, blend: 'dest-in' }])
                     .toBuffer();
                 
@@ -100,24 +87,20 @@ class BApi {
                     }
                 })
                 .composite([{
-                    input: processedAvatar,
+                    input: avatarBuf,
                     left: 5,
                     top: 5
                 }])
                 .png()
                 .toBuffer();
+                
+                logger.mark('[二维码美化] 头像处理成功')
+            } catch (error) {
+                logger.warn('[二维码美化] 头像处理失败，将生成不带头像的二维码', error.message)
+                processedAvatar = null;
             }
             
-            const compositeImages = [{ input: qrBuffer }]
-            if (processedAvatar) {
-                compositeImages.push({
-                    input: processedAvatar,
-                    left: 195,  // 居中位置 (500-110)/2
-                    top: 195,   // 居中位置 (500-110)/2
-                    blend: 'over'
-                });
-            }
-            
+            logger.mark('[二维码美化] 正在合成最终图像')
             // 创建最终图像，添加装饰性边框
             const finalImage = await sharp({
                     create: {
@@ -161,6 +144,8 @@ class BApi {
                 ])
                 .png()
                 .toBuffer()
+            
+            logger.mark('[二维码美化] 二维码生成完成')
             const base64String = finalImage.toString('base64')
             return {
                 code: 0,
@@ -172,11 +157,54 @@ class BApi {
     
         } catch (error) {
             logger.error('[生成定制米游社登录二维码失败]', error)
-            return {
-                code: -1,
-                msg: error.message || "QR code generation failed",
-                data: null
-            };
+            // 即使失败也尝试生成一个基本的彩色二维码
+            try {
+                logger.mark('[二维码美化] 尝试生成备用彩色二维码')
+                const qrBuffer = await QR.toBuffer(url, {
+                    color: {
+                        dark: '#2C3E50',
+                        light: '#FFFFFF'
+                    },
+                    margin: 2,
+                    scale: 12,
+                    width: 500,
+                    height: 500,
+                    errorCorrectionLevel: 'H'
+                })
+                
+                const finalImage = await sharp({
+                    create: {
+                        width: 520,
+                        height: 520,
+                        channels: 4,
+                        background: { r: 255, g: 255, b: 255, alpha: 1 }
+                    }
+                })
+                .composite([{
+                    input: qrBuffer,
+                    left: 20,
+                    top: 20
+                }])
+                .png()
+                .toBuffer()
+                
+                const base64String = finalImage.toString('base64')
+                logger.mark('[二维码美化] 备用彩色二维码生成成功')
+                return {
+                    code: 0,
+                    msg: "ok",
+                    data: {
+                        base64: `base64://${base64String}`
+                    }
+                };
+            } catch (fallbackError) {
+                logger.error('[二维码美化] 备用方案也失败', fallbackError)
+                return {
+                    code: -1,
+                    msg: error.message || "QR code generation failed",
+                    data: null
+                };
+            }
         }
     }
 }
