@@ -8,6 +8,8 @@ class BApi {
     async getloginqrcode(url, e) {
         try {
             const avatarUrl = await e.bot.pickFriend(e.user_id).getAvatarUrl()
+            
+            // 更丰富的颜色方案
             function getRandomColor(baseColor = [255, 145, 164], variation = 8) {
                 const [baseR, baseG, baseB] = baseColor;
                 const r = Math.max(0, Math.min(baseR + Math.floor(Math.random() * (variation * 2 + 1)) - variation, 255))
@@ -21,15 +23,30 @@ class BApi {
                     .padStart(2, '0')
                 return `#${r}${g}${b}`
             }
+            
+            // 生成渐变背景色
+            function getGradientColors() {
+                const colors = [
+                    ['#FF9EAA', '#FFE5CC'], // 粉色系
+                    ['#A0E7E5', '#B4F8C8'], // 青绿色系
+                    ['#FBE7C6', '#FFAEBC'], // 暖色系
+                    ['#D4A5A5', '#F4E7E7'], // 玫瑰色系
+                    ['#C7CEEA', '#E2F0CB']  // 蓝紫色系
+                ];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            const gradientColors = getGradientColors();
             const qrBuffer = await QR.toBuffer(url, {
                 color: {
-                    dark: '#000000',
-                    light: getRandomColor()
+                    dark: '#2C3E50',  // 深蓝色代替纯黑，更柔和
+                    light: gradientColors[1]  // 使用渐变的浅色作为背景
                 },
-                margin: 1,
-                scale: 10,
-                width: 400,
-                height: 400
+                margin: 2,
+                scale: 12,  // 增加缩放比例以提高清晰度
+                width: 500,
+                height: 500,
+                errorCorrectionLevel: 'H'  // 高纠错级别，允许更大的中心logo
             })
             let avatarImage
             try {
@@ -41,28 +58,107 @@ class BApi {
                 logger.error('无法获取用户头像', error)
                 avatarImage = null;
             }
-            const compositeImages = [{ input: qrBuffer }]
+            
+            // 创建带圆角和边框的头像
+            let processedAvatar = null;
             if (avatarImage) {
-                const processedAvatar = await sharp(avatarImage)
-                    .resize(120, 120)
+                // 调整头像大小并添加圆形裁剪
+                processedAvatar = await sharp(avatarImage)
+                    .resize(100, 100)
+                    .toFormat('png')
                     .toBuffer();
                 
+                // 创建圆形遮罩
+                const circleMask = await sharp({
+                    create: {
+                        width: 100,
+                        height: 100,
+                        channels: 4,
+                        background: { r: 0, g: 0, b: 0, alpha: 0 }
+                    }
+                })
+                .composite([{
+                    input: Buffer.from(
+                        `<svg><circle cx="50" cy="50" r="50" fill="white"/></svg>`
+                    ),
+                    blend: 'dest-in'
+                }])
+                .toBuffer();
+                
+                // 应用圆形遮罩
+                processedAvatar = await sharp(processedAvatar)
+                    .composite([{ input: circleMask, blend: 'dest-in' }])
+                    .toBuffer();
+                
+                // 添加白色边框
+                processedAvatar = await sharp({
+                    create: {
+                        width: 110,
+                        height: 110,
+                        channels: 4,
+                        background: { r: 255, g: 255, b: 255, alpha: 1 }
+                    }
+                })
+                .composite([{
+                    input: processedAvatar,
+                    left: 5,
+                    top: 5
+                }])
+                .png()
+                .toBuffer();
+            }
+            
+            const compositeImages = [{ input: qrBuffer }]
+            if (processedAvatar) {
                 compositeImages.push({
                     input: processedAvatar,
-                    left: 140,
-                    top: 140,
+                    left: 195,  // 居中位置 (500-110)/2
+                    top: 195,   // 居中位置 (500-110)/2
                     blend: 'over'
                 });
             }
+            
+            // 创建最终图像，添加装饰性边框
             const finalImage = await sharp({
                     create: {
-                        width: 400,
-                        height: 400,
+                        width: 520,  // 增加尺寸以容纳边框
+                        height: 520,
                         channels: 4,
-                        background: { r: 255, g: 255, b: 255, alpha: 0 }
+                        background: { r: 255, g: 255, b: 255, alpha: 1 }
                     }
                 })
-                .composite(compositeImages)
+                .composite([
+                    // 添加装饰性外框
+                    {
+                        input: Buffer.from(
+                            `<svg width="520" height="520">
+                                <defs>
+                                    <linearGradient id="borderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:${gradientColors[0]};stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:${gradientColors[1]};stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <rect x="0" y="0" width="520" height="520" rx="20" ry="20" fill="url(#borderGradient)"/>
+                                <rect x="10" y="10" width="500" height="500" rx="15" ry="15" fill="white"/>
+                            </svg>`
+                        ),
+                        left: 0,
+                        top: 0
+                    },
+                    // 放置二维码
+                    {
+                        input: qrBuffer,
+                        left: 20,
+                        top: 20
+                    },
+                    // 放置头像（如果存在）
+                    ...(processedAvatar ? [{
+                        input: processedAvatar,
+                        left: 205,  // 调整位置以适应新布局
+                        top: 205,
+                        blend: 'over'
+                    }] : [])
+                ])
                 .png()
                 .toBuffer()
             const base64String = finalImage.toString('base64')
